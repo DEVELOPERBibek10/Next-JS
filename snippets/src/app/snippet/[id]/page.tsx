@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import React from "react";
+import NotFoundPage from "../not-found";
 
 interface SnippetDetailPageProp {
   params: Promise<{ id: string }>;
@@ -19,11 +20,7 @@ const SnippetDetailPage = async ({ params }: SnippetDetailPageProp) => {
   });
 
   if (!snippet) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Snippet not found
-      </div>
-    );
+    return <NotFoundPage />;
   }
 
   const lines = snippet.code.split("\n");

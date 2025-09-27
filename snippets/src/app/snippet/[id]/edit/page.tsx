@@ -1,6 +1,7 @@
 import EditSnippetEditor from "@/components/editSnippetEditor";
 import { prisma } from "@/lib/prisma";
 import React from "react";
+import NotFoundPage from "../../not-found";
 
 const EditSnippetPage = async ({
   params,
@@ -15,11 +16,7 @@ const EditSnippetPage = async ({
   });
 
   if (!snippet) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        Snippet not found
-      </div>
-    );
+    return <NotFoundPage />;
   }
   return (
     <>
