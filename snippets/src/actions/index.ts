@@ -3,35 +3,35 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 export async function createSnippet(
-  prevState: { message: string },
+  prevState: {
+    
+    message: string;
+  },
   formData: FormData
 ) {
   "use server";
+  const title = formData.get("title") as string;
+  const code = formData.get("code") as string;
   try {
-    const title = formData.get("title");
-    const code = formData.get("code");
-
-    if (typeof title !== "string" || title.length < 4) {
-      throw new Error(
-        "Title is required and should be longer than 6 characters"
-      );
-    }
-
-    if (typeof code !== "string" || code.length < 6) {
-      throw new Error(
-        "Code is required and should be longer than 6 characters"
-      );
-    }
-
-    await prisma.snippet.create({
+    const response = await prisma.snippet.create({
       data: {
         title,
         code,
       },
     });
+    
+    if (!response) {
+      throw new Error("Something went wrong")
+    }
+
+    console.log(response);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      return { message: error.message };
+      return {
+        title: title ? title : "",
+        code: code ? code : "",
+        message: error.message,
+      };
     }
     return { message: "Somthing went wrong!" };
   }
