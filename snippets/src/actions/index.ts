@@ -1,10 +1,10 @@
 "use server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createSnippet(
   prevState: {
-    
     message: string;
   },
   formData: FormData
@@ -19,9 +19,9 @@ export async function createSnippet(
         code,
       },
     });
-    
+
     if (!response) {
-      throw new Error("Something went wrong")
+      throw new Error("Something went wrong");
     }
 
     console.log(response);
@@ -35,7 +35,7 @@ export async function createSnippet(
     }
     return { message: "Somthing went wrong!" };
   }
-
+  revalidatePath("/");
   redirect("/");
 }
 
@@ -57,5 +57,6 @@ export async function deleteSnippet(id: number) {
       id,
     },
   });
+  revalidatePath("/");
   redirect("/");
 }
