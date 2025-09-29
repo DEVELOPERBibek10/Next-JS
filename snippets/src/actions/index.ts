@@ -23,8 +23,6 @@ export async function createSnippet(
     if (!response) {
       throw new Error("Something went wrong");
     }
-
-    console.log(response);
   } catch (error: unknown) {
     if (error instanceof Error) {
       return {
@@ -48,6 +46,7 @@ export async function saveSnippet(id: number, code: string) {
       code,
     },
   });
+  revalidatePath(`/snippet/${id}`);
   redirect(`/snippet/${id}`);
 }
 
