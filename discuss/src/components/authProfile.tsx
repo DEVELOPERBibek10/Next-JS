@@ -2,8 +2,8 @@
 import { useSession } from "next-auth/react";
 import React from "react";
 import { Button } from "./ui/button";
-import { signIn } from "@/app/actions/sign-in";
-import { signOut } from "@/app/actions/sign-out";
+import { signIn } from "@/actions/sign-in";
+import { signOut } from "@/actions/sign-out";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -36,7 +36,11 @@ const AuthProfile = () => {
               }
               alt="@shadcn"
             />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarFallback
+              style={{
+                background: `url(https://cdn-icons-png.flaticon.com/128/64/64572.png) center/cover no-repeat`,
+              }}
+            />
           </Avatar>
         </PopoverTrigger>
         <PopoverContent className="flex flex-col gap-4">
