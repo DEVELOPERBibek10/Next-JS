@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-interface CreateTopicErrorParams {
+export interface CreateTopicErrorParams {
   error: {
     name?: string[];
     description?: string[];
@@ -15,7 +15,12 @@ interface CreateTopicErrorParams {
 }
 
 const createTopicSchema = z.object({
-  name: z.string().min(3, "Name should be at least 3 characters long"),
+  name: z
+    .string()
+    .regex(/^[a-z]+$/, {
+      message: "Name can only contain lowercase letters",
+    })
+    .min(3, { message: "Name should be at least 3 characters long" }),
   description: z
     .string()
     .min(10, "Description should be at least 10 characters long"),
@@ -34,9 +39,10 @@ export const createTopic = async (
     const fieldErrors = z.treeifyError(topic.error);
     return {
       error: {
+        ...prevState.error,
         name: fieldErrors.properties?.name?.errors || [],
         description: fieldErrors.properties?.description?.errors || [],
-        formError: ["Please fix the errors below and try again."],
+        formError: ["Please fix the errors above and try again."],
       },
     };
   }
@@ -74,5 +80,5 @@ export const createTopic = async (
   }
 
   revalidatePath("/");
-  redirect(`/topic/${createdTopic.slug}`);
+  redirect(`/topics/${createdTopic.slug}`);
 };
