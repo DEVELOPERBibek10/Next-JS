@@ -75,6 +75,10 @@ export const createPost = async (
         topicId: topic.id,
       },
     });
+
+    if (!Post) {
+      throw new Error("Failed to create post");
+    }
   } catch (error: unknown) {
     if (error instanceof Error) {
       return {
