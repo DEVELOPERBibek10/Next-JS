@@ -1,6 +1,7 @@
-import React from "react";
-import { Input } from "./ui/input";
+import React, { Suspense } from "react";
+
 import AuthProfile from "./authProfile";
+import SearchInput from "./searchInput";
 
 const Header = async () => {
   return (
@@ -8,8 +9,10 @@ const Header = async () => {
       <div className="flex justify-start">
         <h1 className="font-bold text-xl">Discuss</h1>
       </div>
-      <div className="justify-center flex">
-        <Input className=" h-12" type="text" placeholder="Search..." />
+      <div className="justify-center flex w-full">
+        <Suspense>
+          <SearchInput />
+        </Suspense>
       </div>
       <div className="flex justify-end gap-4">
         <AuthProfile />

@@ -55,3 +55,20 @@ export const fetchTopPosts = async (): Promise<PostWithData[]> => {
     throw new Error("An unexpected error occurred");
   }
 };
+
+export const fetchPostBySearchTerm = async (
+  term: string
+): Promise<PostWithData[]> => {
+  const posts = await prisma.post.findMany({
+    include: {
+      topic: { select: { slug: true } },
+      _count: { select: { comments: true } },
+      user: { select: { name: true } },
+    },
+    where: {
+      OR: [{ title: { contains: term } }, { content: { contains: term } }],
+    },
+  });
+
+  return posts;
+};
