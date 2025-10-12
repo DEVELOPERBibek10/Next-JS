@@ -2,6 +2,7 @@
 import { createAdminClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { parseStringify } from "@/lib/utils";
+import { cookies } from "next/headers";
 import { ID, Query } from "node-appwrite";
 
 export const getUserByEmail = async (email: string) => {
@@ -23,10 +24,6 @@ export const getUserByEmail = async (email: string) => {
     }
     return null;
   }
-};
-
-export const handleError = (error: unknown, message: string) => {
-  console.log(error, message);
 };
 
 export const sendEmailOTP = async ({ email }: { email: string }) => {
@@ -79,4 +76,39 @@ export const createAccount = async ({
   }
 
   return parseStringify({ accountId });
+};
+
+export const verifyOTP = async ({
+  accountId,
+  password,
+}: {
+  accountId: string;
+  password: string;
+}) => {
+  try {
+    const { account } = await createAdminClient();
+
+    const session = await account.createSession({
+      userId: accountId,
+      secret: password,
+    });
+
+    if (!session) {
+      throw new Error("Failed to create session");
+    }
+
+    (await cookies()).set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+
+    return parseStringify({ sessionId: session.$id });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error.message;
+    }
+    throw error;
+  }
 };

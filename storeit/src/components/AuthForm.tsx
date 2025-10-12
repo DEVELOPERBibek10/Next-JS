@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { createAccount } from "@/actions/userActions";
+import OTPModal from "./OTPModal";
 
 type AuthFormType = "sign-in" | "sign-up";
 
@@ -38,6 +40,7 @@ const AuthFormSchema = (formType: AuthFormType) => {
 export default function AuthForm({ type }: { type: AuthFormType }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [accountId, setAccountId] = useState(null);
 
   const formSchema = AuthFormSchema(type);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,7 +52,26 @@ export default function AuthForm({ type }: { type: AuthFormType }) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const user = await createAccount({
+        fullName: values.fullName || "",
+        email: values.email,
+      });
+      if (!user) {
+        throw new Error("Failed to create an account. Please try again");
+      }
+      setAccountId(user.accountId);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+        return;
+      }
+      setErrorMessage(error as string);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,6 +120,7 @@ export default function AuthForm({ type }: { type: AuthFormType }) {
                   <FormControl>
                     <Input
                       className="outline-none ring-offset-transparent focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0 border-none shadow-none p-0 placeholder:text-light-200 text-[14px] leading-[20px] font-normal"
+                      type="email"
                       placeholder="Enter your email"
                       {...field}
                     />
@@ -144,7 +167,9 @@ export default function AuthForm({ type }: { type: AuthFormType }) {
           </div>
         </form>
       </Form>
-      {/* OTP verifcation */}
+      {accountId && (
+        <OTPModal email={form.getValues("email")} accountId={accountId!} />
+      )}
     </>
   );
 }
