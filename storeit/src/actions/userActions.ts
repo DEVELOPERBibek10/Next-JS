@@ -1,8 +1,9 @@
 "use server";
-import { createAdminClient } from "@/lib/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { ID, Query } from "node-appwrite";
 
 export const getUserByEmail = async (email: string) => {
@@ -110,5 +111,54 @@ export const verifyOTP = async ({
       throw error.message;
     }
     throw error;
+  }
+};
+
+export const getCurrentUser = async () => {
+  const client = await createSessionClient();
+  if (!client) return null;
+  const { database, account } = client;
+
+  const currentSession = await account.get();
+
+  const user = await database.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: appwriteConfig.usersTableId,
+    queries: [Query.equal("accountId", currentSession.$id)],
+  });
+
+  if (!user.total || !currentSession) return null;
+
+  return parseStringify(user.rows[0]);
+};
+
+export const signOutUser = async () => {
+  const client = await createSessionClient();
+  if (!client) return null;
+  const { account } = client;
+
+  try {
+    await account.deleteSession({
+      sessionId: "current",
+    });
+    (await cookies()).delete("appwrite-session");
+  } catch (error) {
+    throw new Error(error as string);
+  } finally {
+    redirect("/sign-in");
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    if (existingUser) {
+      await sendEmailOTP({ email });
+      return parseStringify({ accountId: existingUser.accountId });
+    }
+    return parseStringify({ accountId: null, error: "User not found" });
+  } catch {
+    throw new Error(`Failed to sign in user`);
   }
 };

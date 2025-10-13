@@ -6,7 +6,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
-const Sidebar = () => {
+interface SidebarProps {
+  fullName: string;
+  email: string;
+  avatar: string;
+}
+
+const Sidebar = ({ fullName, email, avatar }: SidebarProps) => {
   const pathname = usePathname();
   return (
     <>
@@ -68,7 +74,11 @@ const Sidebar = () => {
 
         <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-brand/10 p-1 text-light-100 lg:justify-start lg:p-3">
           <Image
-            src={"https://cdn-icons-png.flaticon.com/128/3177/3177440.png"}
+            src={
+              avatar
+                ? avatar
+                : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"
+            }
             alt="files"
             width={506}
             height={418}
@@ -76,12 +86,10 @@ const Sidebar = () => {
           />
           <div className="hidden lg:block">
             <p className="text-[14px] leading-[20px] font-semibold capitalize">
-              {/* fullName props later */}
-              Bibek Pyakurel
+              {fullName}
             </p>
             <p className="text-[12px] leading-[16px] font-medium text-black/50">
-              {/* email props later */}
-              bibekpyakurel7@gmail.com
+              {email}
             </p>
           </div>
         </div>
