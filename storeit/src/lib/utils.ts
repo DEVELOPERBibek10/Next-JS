@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { FileType } from "@/types";
 import { clsx, type ClassValue } from "clsx";
+import { Models } from "node-appwrite";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -187,7 +189,7 @@ export const constructFileUrl = (bucketFileId: string) => {
 };
 
 export const constructDownloadUrl = (bucketFileId: string) => {
-  return `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/download?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
+  return `https://syd.cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET}/files/${bucketFileId}/download?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}`;
 };
 
 // DASHBOARD UTILS
@@ -240,4 +242,13 @@ export const getFileTypesParams = (type: string) => {
     default:
       return ["document"];
   }
+};
+
+export const getTotalFileSize = (files: Models.RowList<Models.DefaultRow>) => {
+  return Math.round(
+    files.rows.reduce(
+      (totalSize: number, file: Models.DefaultRow) => totalSize + file.size,
+      0
+    )
+  );
 };

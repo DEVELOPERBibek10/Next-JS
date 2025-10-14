@@ -1,3 +1,4 @@
+import type { Models } from "node-appwrite";
 declare type FileType = "document" | "image" | "video" | "audio" | "other";
 
 declare interface ActionType {
@@ -71,4 +72,42 @@ declare interface ShareInputProps {
   file: Models.Document;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (email: string) => void;
+}
+
+declare interface ExtendedUser extends Models.Document {
+  name: string;
+  registration: string;
+  status: boolean;
+  labels: string[];
+  passwordUpdate: string;
+  email: string;
+  phone: string;
+  emailVerification: boolean;
+  phoneVerification: boolean;
+  mfa: boolean;
+  prefs: Record<string, unknown>;
+  targets: {
+    $id: string;
+    $createdAt: string;
+    $updatedAt: string;
+    name: string;
+    userId: string;
+    providerId: string | null;
+    providerType: string;
+    identifier: string;
+    expired: boolean;
+  }[];
+  accessedAt: string;
+}
+
+declare interface ExtendedFileRow extends Models.DefaultRow {
+  name: string;
+  url: string;
+  type: string;
+  bucketFileId: string;
+  accountId: string;
+  extension: string;
+  size: number;
+  users: string[]; // adjust to object[] if you store user objects instead of IDs
+  owner: string;
 }
