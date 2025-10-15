@@ -25,7 +25,7 @@ const Card = async ({ file }: { file: ExtendedFileRow }) => {
           imageClassName="size-11!"
         />
         <div className="flex flex-col items-end justify-between">
-          <ActionsDropdown file={file} />
+          <ActionsDropdown file={file} owner={user.fullName} />
           <p className="text-[16px] leading-[24px] font-normal">
             {convertFileSize(file.size)}
           </p>
@@ -41,7 +41,7 @@ const Card = async ({ file }: { file: ExtendedFileRow }) => {
         />
       </div>
       <p className="text-[12px] leading-[16px] font-normal text-light-200">
-        {user.fullName}
+        By {user.fullName}
       </p>
     </Link>
   );

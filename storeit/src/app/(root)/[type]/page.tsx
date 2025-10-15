@@ -1,13 +1,18 @@
 import { getFiles } from "@/actions/fileActions";
 import Card from "@/components/Card";
 import Sort from "@/components/Sort";
-import { convertFileSize, getTotalFileSize } from "@/lib/utils";
-import { ExtendedFileRow, SearchParamProps } from "@/types";
+import {
+  convertFileSize,
+  getFileTypesParams,
+  getTotalFileSize,
+} from "@/lib/utils";
+import { ExtendedFileRow, FileType, SearchParamProps } from "@/types";
 import React from "react";
 
 const Page = async ({ params }: SearchParamProps) => {
   const type = (await params)?.type as string;
-  const files = await getFiles();
+  const types = getFileTypesParams(type) as FileType[];
+  const files = await getFiles({ types: types });
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8">

@@ -7,7 +7,14 @@ import { revalidatePath } from "next/cache";
 import { ID, Query } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
 import { getCurrentUser } from "./userActions";
-import { ExtendedUser, UploadFileProps } from "@/types";
+import {
+  DeleteFileProps,
+  ExtendedUser,
+  GetFilesProps,
+  RenameFileProps,
+  UpdateFileUsersProps,
+  UploadFileProps,
+} from "@/types";
 
 export const uploadFile = async ({
   file,
@@ -59,23 +66,28 @@ export const uploadFile = async ({
   }
 };
 
-export const createQueries = async (currentUser: ExtendedUser) => {
+export const createQueries = async (
+  currentUser: ExtendedUser,
+  types: string[]
+) => {
   const queries = [
     Query.or([
       Query.equal("owner", [currentUser.$id]),
       Query.contains("users", [currentUser.email]),
     ]),
   ];
+
+  if (types.length > 0) queries.push(Query.equal("type", types));
   return queries;
 };
 
-export const getFiles = async () => {
+export const getFiles = async ({ types = [] }: GetFilesProps) => {
   const { database } = await createAdminClient();
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) throw new Error("User not found!");
 
-    const queries = await createQueries(currentUser);
+    const queries = await createQueries(currentUser, types);
 
     const files = await database.listRows({
       databaseId: appwriteConfig.databaseId,
@@ -103,6 +115,90 @@ export const getUserDocument = async (ownerId: string) => {
     });
     if (!user) throw new Error(`Unable to find user with id: ${ownerId}`);
     return user;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error(error as string);
+  }
+};
+
+export const renameFile = async ({
+  fileId,
+  name,
+  extension,
+  path,
+}: RenameFileProps) => {
+  const { database } = await createAdminClient();
+
+  try {
+    const newName = `${name}.${extension}`;
+    const updatedFile = await database.updateRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.filesTableId,
+      rowId: fileId,
+      data: {
+        name: newName,
+      },
+    });
+    if (!updatedFile) throw new Error("Updating file operation failed!");
+    revalidatePath(path);
+    return parseStringify(updatedFile);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error(error as string);
+  }
+};
+
+export const updateFileUsers = async ({
+  fileId,
+  emails,
+  path,
+}: UpdateFileUsersProps) => {
+  const { database } = await createAdminClient();
+
+  try {
+    const updatedFile = await database.updateRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.filesTableId,
+      rowId: fileId,
+      data: {
+        users: emails,
+      },
+    });
+    if (!updatedFile) throw new Error("Updating file operation failed!");
+    revalidatePath(path);
+    return parseStringify(updatedFile);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error(error as string);
+  }
+};
+
+export const deleteFile = async ({
+  fileId,
+  bucketFileId,
+  path,
+}: DeleteFileProps) => {
+  const { database, storage } = await createAdminClient();
+
+  try {
+    const deletedFile = await database.deleteRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.filesTableId,
+      rowId: fileId,
+    });
+    if (!deletedFile) throw new Error("Deleting file operation failed!");
+    await storage.deleteFile({
+      bucketId: appwriteConfig.bucketId,
+      fileId: bucketFileId,
+    });
+    revalidatePath(path);
+    return parseStringify({ status: "success" });
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message);
