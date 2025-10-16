@@ -9,10 +9,12 @@ import {
 import { ExtendedFileRow, FileType, SearchParamProps } from "@/types";
 import React from "react";
 
-const Page = async ({ params }: SearchParamProps) => {
+const Page = async ({ params, searchParams }: SearchParamProps) => {
   const type = (await params)?.type as string;
   const types = getFileTypesParams(type) as FileType[];
-  const files = await getFiles({ types: types });
+  const searchText = ((await searchParams)?.query as string) || "";
+  const sort = ((await searchParams)?.sort as string) || "";
+  const files = await getFiles({ types, searchText, sort });
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8">

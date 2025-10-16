@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import Image from "next/image";
-import { ActionType, ExtendedFileRow } from "@/types";
+import { ActionType } from "@/types";
 import { actionsDropdownItems } from "@/constants";
 import Link from "next/link";
 import { constructDownloadUrl } from "@/lib/utils";
@@ -29,13 +29,14 @@ import { deleteFile, renameFile, updateFileUsers } from "@/actions/fileActions";
 import { usePathname } from "next/navigation";
 import FileDetails, { ShareInput } from "./ActionsModelContent";
 import { toast } from "sonner";
+import { Models } from "node-appwrite";
 
 const ActionsDropdown = ({
   file,
   owner,
 }: {
-  file: ExtendedFileRow;
-  owner: string;
+  file: Models.DefaultRow;
+  owner: string | Promise<string>;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

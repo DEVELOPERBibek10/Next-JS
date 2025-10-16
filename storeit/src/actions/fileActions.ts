@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient } from "@/lib/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { constructFileUrl, getFileType, parseStringify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
@@ -10,6 +10,7 @@ import { getCurrentUser } from "./userActions";
 import {
   DeleteFileProps,
   ExtendedUser,
+  FileType,
   GetFilesProps,
   RenameFileProps,
   UpdateFileUsersProps,
@@ -68,7 +69,10 @@ export const uploadFile = async ({
 
 export const createQueries = async (
   currentUser: ExtendedUser,
-  types: string[]
+  types: string[],
+  searchText: string,
+  sort: string,
+  limit?: number
 ) => {
   const queries = [
     Query.or([
@@ -78,16 +82,36 @@ export const createQueries = async (
   ];
 
   if (types.length > 0) queries.push(Query.equal("type", types));
+  if (searchText) queries.push(Query.contains("name", searchText));
+  if (limit) queries.push(Query.limit(limit));
+  if (sort) {
+    const [sortBy, orderBy] = sort.split("-");
+    queries.push(
+      orderBy === "asc" ? Query.orderAsc(sortBy) : Query.orderDesc(sortBy)
+    );
+  }
+
   return queries;
 };
 
-export const getFiles = async ({ types = [] }: GetFilesProps) => {
+export const getFiles = async ({
+  types = [],
+  searchText = "",
+  sort = "$createdAt-desc",
+  limit,
+}: GetFilesProps) => {
   const { database } = await createAdminClient();
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) throw new Error("User not found!");
 
-    const queries = await createQueries(currentUser, types);
+    const queries = await createQueries(
+      currentUser,
+      types,
+      searchText,
+      sort,
+      limit
+    );
 
     const files = await database.listRows({
       databaseId: appwriteConfig.databaseId,
@@ -206,3 +230,49 @@ export const deleteFile = async ({
     throw new Error(error as string);
   }
 };
+
+export async function getTotalSpaceUsed() {
+  try {
+    const client = await createSessionClient();
+    if (!client) return null;
+    const { database } = client;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) throw new Error("User is not authenticated.");
+
+    const files = await database.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.filesTableId,
+      queries: [Query.equal("owner", [currentUser.$id])],
+    });
+
+    const totalSpace = {
+      image: { size: 0, latestDate: "" },
+      document: { size: 0, latestDate: "" },
+      video: { size: 0, latestDate: "" },
+      audio: { size: 0, latestDate: "" },
+      other: { size: 0, latestDate: "" },
+      used: 0,
+      all: 2 * 1024 * 1024 * 1024 /* 2GB available bucket storage */,
+    };
+
+    files.rows.forEach((file) => {
+      const fileType = file.type as FileType;
+      totalSpace[fileType].size += file.size;
+      totalSpace.used += file.size;
+
+      if (
+        !totalSpace[fileType].latestDate ||
+        new Date(file.$updatedAt) > new Date(totalSpace[fileType].latestDate)
+      ) {
+        totalSpace[fileType].latestDate = file.$updatedAt;
+      }
+    });
+
+    return parseStringify(totalSpace);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error(error as string);
+  }
+}

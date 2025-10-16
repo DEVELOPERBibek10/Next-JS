@@ -26,7 +26,7 @@ const Header = ({
           >
             <Button
               type="submit"
-              className="flex items-center justify-center h-[52px] min-w-[54px] rounded-full bg-brand/10! p-0 text-brand shadow-none transition-all hover:bg-brand/20!"
+              className="flex items-center justify-center h-[52px] min-w-[54px] rounded-full bg-brand/10! p-0 text-brand shadow-none transition-all hover:bg-brand/20! cursor-pointer"
             >
               <Image
                 src="/assets/icons/logout.svg"

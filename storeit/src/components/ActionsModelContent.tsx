@@ -1,4 +1,3 @@
-import { ExtendedFileRow } from "@/types";
 import React from "react";
 import Thumbnail from "./Thumbnail";
 import FormatedDateAndTime from "./FormatedDateAndTime";
@@ -6,8 +5,9 @@ import { convertFileSize, formatDateTime } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { Models } from "node-appwrite";
 
-export const ImageThumbnail = ({ file }: { file: ExtendedFileRow }) => {
+export const ImageThumbnail = ({ file }: { file: Models.DefaultRow }) => {
   return (
     <div className=" !mb-1 flex items-center gap-3 rounded-xl border border-light-200/40 bg-light-400/50 p-3">
       <Thumbnail type={file.type} extension={file.extension} url={file.url} />
@@ -24,7 +24,13 @@ export const ImageThumbnail = ({ file }: { file: ExtendedFileRow }) => {
   );
 };
 
-const DetailRow = ({ label, value }: { label: string; value: string }) => {
+const DetailRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | Promise<string>;
+}) => {
   return (
     <div className="flex">
       <p className="text-[14px] leading-[20px] font-semibold w-[30%] text-light-100 text-left">
@@ -41,8 +47,8 @@ export const FileDetails = ({
   file,
   owner,
 }: {
-  file: ExtendedFileRow;
-  owner: string;
+  file: Models.DefaultRow;
+  owner: string | Promise<string>;
 }) => {
   return (
     <>
@@ -63,7 +69,7 @@ export const FileDetails = ({
 export default FileDetails;
 
 interface ShareInputProps {
-  file: ExtendedFileRow;
+  file: Models.DefaultRow;
   onInputChange: React.Dispatch<React.SetStateAction<string[]>>;
   onRemove: (email: string) => void;
 }
